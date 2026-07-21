@@ -1,0 +1,19 @@
+[
+  {
+    "company_name": "Northstar Compute",
+    "ticker": "NSTC",
+    "exchange": "NASDAQ",
+    "sector": "AI Infrastructure",
+    "status": "pricing",
+    "expected_pricing_date": "2026-07-23",
+    "expected_listing_date": "2026-07-24",
+    "current_price_range_low": 22,
+    "current_price_range_high": 25,
+    "estimated_deal_size": 920000000,
+    "shares_offered": 36800000,
+    "description": "GPU cloud infrastructure provider with strong enterprise demand.",
+    "last_source": "manual-json",
+    "source_label": "manual sync",
+    "trust_label": "reviewed"
+  }
+]

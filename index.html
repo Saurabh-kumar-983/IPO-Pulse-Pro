@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IPO Pulse Pro</title>
+    <meta
+      name="description"
+      content="Realtime one-point IPO tracker with pipeline intelligence, filters, company drill-down, watchlist, and Supabase-powered live updates."
+    />
+    <link rel="icon" href="./assets/logo.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar glass">
+        <div>
+          <div class="brand">
+            <img src="./assets/logo.svg" alt="IPO Pulse Pro logo" class="brand-logo" />
+            <div>
+              <p class="eyebrow">Realtime Market Intelligence</p>
+              <h1>IPO Pulse Pro</h1>
+            </div>
+          </div>
+
+          <nav class="nav-stack">
+            <button class="nav-link active" data-view="dashboard">Dashboard</button>
+            <button class="nav-link" data-view="calendar">IPO Calendar</button>
+            <button class="nav-link" data-view="pipeline">Pipeline</button>
+            <button class="nav-link" data-view="watchlist">Watchlist</button>
+            <button class="nav-link" data-view="sources">Source Health</button>
+          </nav>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="eyebrow">Deployment Notes</p>
+          <ul>
+            <li>GitHub Pages ready</li>
+            <li>Supabase realtime enabled</li>
+            <li>Works with fallback mock data</li>
+            <li>Schema included in <code>/supabase/schema.sql</code></li>
+          </ul>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">One-point solution for IPO discovery</p>
+            <h2 id="page-title">Executive Dashboard</h2>
+          </div>
+          <div class="topbar-actions">
+            <div class="live-pill">
+              <span class="live-dot"></span>
+              <span id="connection-state">Connecting</span>
+            </div>
+            <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+            <button id="auth-btn" class="btn btn-primary">Sign in for Watchlist</button>
+          </div>
+        </header>
+
+        <section class="hero glass">
+          <div>
+            <p class="eyebrow">Professional IPO command center</p>
+            <h3>Track the full lifecycle from filing to listing</h3>
+            <p class="hero-copy">
+              Surface newly filed deals, pricing moves, listing-day momentum, and user watchlist alerts in one clean experience.
+            </p>
+            <div class="hero-actions">
+              <button id="hero-live-refresh" class="btn btn-primary">Pull latest updates</button>
+              <button id="hero-demo-fill" class="btn btn-secondary">Load sample records</button>
+            </div>
+          </div>
+          <div class="hero-grid">
+            <div class="hero-stat">
+              <span>Data mode</span>
+              <strong id="data-mode">Starting</strong>
+            </div>
+            <div class="hero-stat">
+              <span>Last sync</span>
+              <strong id="last-sync">—</strong>
+            </div>
+            <div class="hero-stat">
+              <span>Tracked issuers</span>
+              <strong id="tracked-count">0</strong>
+            </div>
+            <div class="hero-stat">
+              <span>Realtime stream</span>
+              <strong id="realtime-status">Inactive</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="filters glass">
+          <div class="filter-field filter-grow">
+            <label for="search-input">Search issuer / ticker</label>
+            <input id="search-input" type="search" placeholder="Stripe, CoreWeave, CHYM, healthcare..." />
+          </div>
+          <div class="filter-field">
+            <label for="status-filter">Status</label>
+            <select id="status-filter">
+              <option value="all">All statuses</option>
+              <option value="filed">Filed</option>
+              <option value="marketing">Marketing</option>
+              <option value="pricing">Pricing soon</option>
+              <option value="listed">Listed</option>
+              <option value="withdrawn">Withdrawn</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="exchange-filter">Exchange</label>
+            <select id="exchange-filter">
+              <option value="all">All exchanges</option>
+              <option value="NASDAQ">NASDAQ</option>
+              <option value="NYSE">NYSE</option>
+              <option value="BATS">BATS</option>
+            </select>
+          </div>
+          <div class="filter-field">
+            <label for="sort-filter">Sort</label>
+            <select id="sort-filter">
+              <option value="updated_desc">Recently updated</option>
+              <option value="date_asc">Expected date</option>
+              <option value="deal_desc">Largest deal size</option>
+              <option value="name_asc">Issuer A-Z</option>
+            </select>
+          </div>
+        </section>
+
+        <section class="stats-grid" id="stats-grid">
+          <article class="metric-card glass"><span>Total tracked</span><strong>0</strong><small>all IPO candidates</small></article>
+          <article class="metric-card glass"><span>Pricing in 7 days</span><strong>0</strong><small>near-term focus</small></article>
+          <article class="metric-card glass"><span>Live this month</span><strong>0</strong><small>already listed</small></article>
+          <article class="metric-card glass"><span>Change alerts</span><strong>0</strong><small>new filings & amendments</small></article>
+        </section>
+
+        <section class="content-grid">
+          <div class="primary-column">
+            <section class="panel glass" id="view-dashboard">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Priority board</p>
+                  <h3>IPO radar</h3>
+                </div>
+                <span class="panel-badge" id="radar-count">0 issuers</span>
+              </div>
+              <div id="company-grid" class="company-grid"></div>
+            </section>
+
+            <section class="panel glass hidden" id="view-calendar">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Schedule intelligence</p>
+                  <h3>Expected pricing & listing calendar</h3>
+                </div>
+              </div>
+              <div id="calendar-list" class="calendar-list"></div>
+            </section>
+
+            <section class="panel glass hidden" id="view-pipeline">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Operational view</p>
+                  <h3>Pipeline table</h3>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Issuer</th>
+                      <th>Status</th>
+                      <th>Exchange</th>
+                      <th>Expected date</th>
+                      <th>Price range</th>
+                      <th>Deal size</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pipeline-body"></tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="panel glass hidden" id="view-watchlist">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">User workflow</p>
+                  <h3>Personal watchlist</h3>
+                </div>
+              </div>
+              <div id="watchlist-grid" class="company-grid compact-grid"></div>
+            </section>
+
+            <section class="panel glass hidden" id="view-sources">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Data governance</p>
+                  <h3>Source health and trust labels</h3>
+                </div>
+              </div>
+              <div class="source-grid" id="source-grid"></div>
+            </section>
+          </div>
+
+          <aside class="secondary-column">
+            <section class="panel glass">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Realtime changes</p>
+                  <h3>Latest event feed</h3>
+                </div>
+              </div>
+              <div id="event-feed" class="event-feed"></div>
+            </section>
+
+            <section class="panel glass detail-panel">
+              <div class="panel-header detail-header">
+                <div>
+                  <p class="eyebrow">Issuer intelligence</p>
+                  <h3 id="detail-name">Select an IPO</h3>
+                </div>
+                <button id="watchlist-toggle" class="btn btn-secondary small">☆ Save</button>
+              </div>
+              <div id="detail-card" class="detail-card empty-state">
+                Click any issuer card to see deal terms, catalysts, risks, and timeline.
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="./js/app.js"></script>
+  </body>
+</html>

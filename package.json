@@ -1,0 +1,11 @@
+{
+  "name": "ipo-pulse-pro-sync",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "refresh:ipo": "node ./scripts/refresh-ipo-data.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4"
+  }
+}
