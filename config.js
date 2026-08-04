@@ -1,3 +1,5 @@
+// config.js
+
 export const APP_CONFIG = {
   appName: "IPO Pulse Pro",
   supabaseUrl: "https://iizpmjortvijdwyydtec.supabase.co",
@@ -13,3 +15,9 @@ export const APP_CONFIG = {
     exchanges: ["NASDAQ", "NYSE", "BATS"],
   },
 };
+
+// Initialize Supabase Client
+export const supabaseClient = supabase.createClient(
+  APP_CONFIG.supabaseUrl,
+  APP_CONFIG.supabaseAnonKey
+);
