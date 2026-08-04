@@ -345,8 +345,6 @@
   </style>
 </head>
 <body>
-
-  <!-- App Structure -->
   <div class="app-shell">
     <aside class="sidebar glass">
       <div>
@@ -381,6 +379,7 @@
         <p class="eyebrow">Deployment Notes</p>
         <ul>
           <li>Single-file GitHub Pages build</li>
+          <li>No separate CSS or JS files required</li>
           <li>Supabase realtime ready</li>
           <li>Fallback demo mode included</li>
         </ul>
@@ -556,5 +555,374 @@
 
   <div class="toast hidden" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://iizpmjortvijdwyydtec.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpenBtam9ydHZpamR3eXlkdGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTEwMTcsImV4cCI6MjA5Nzg2NzAxN30.41CO6OSasC1b6m6uoNzURgNQGymOciABNpr1-FVO-8w";
+    const COMPANY_TABLE = "ipo_companies";
+    const EVENT_TABLE = "ipo_events";
+    const WATCHLIST_KEY = "ipo-pulse-pro-watchlist";
+
+    let supabase = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === 'function') {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+          auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+          realtime: { params: { eventsPerSecond: 4 } }
+        });
+      }
+    } catch (err) {
+      console.warn("Supabase client init failed:", err);
+    }
+
+    const mockCompanies = [
+      { id: 'mock-1', company_name: 'Northstar Compute', ticker: 'NSTC', exchange: 'NASDAQ', sector: 'AI Infrastructure', status: 'pricing', expected_listing_date: '2026-07-24', expected_pricing_date: '2026-07-23', current_price_range_low: 22, current_price_range_high: 25, estimated_deal_size: 920000000, shares_offered: 36800000, description: 'GPU cloud infrastructure provider with hyperscaler and enterprise demand tailwinds.', source_label: 'Official SEC + desk intelligence', trust_label: 'Estimated pricing window', updated_at: new Date().toISOString() },
+      { id: 'mock-2', company_name: 'Helio Robotics', ticker: 'HLRO', exchange: 'NYSE', sector: 'Industrial Automation', status: 'marketing', expected_listing_date: '2026-07-31', expected_pricing_date: '2026-07-30', current_price_range_low: 16, current_price_range_high: 19, estimated_deal_size: 410000000, shares_offered: 22100000, description: 'Warehouse robotics and fulfillment software operator expanding across North America and Europe.', source_label: 'SEC filing data', trust_label: 'Filed and marketing', updated_at: new Date().toISOString() },
+      { id: 'mock-3', company_name: 'Atlas BioSystems', ticker: 'ATLB', exchange: 'NASDAQ', sector: 'Biotech', status: 'filed', expected_listing_date: '2026-08-12', expected_pricing_date: '2026-08-11', current_price_range_low: null, current_price_range_high: null, estimated_deal_size: 185000000, shares_offered: 12300000, description: 'Precision oncology platform advancing next-generation diagnostics and companion therapies.', source_label: 'Initial S-1', trust_label: 'Early stage', updated_at: new Date().toISOString() },
+      { id: 'mock-4', company_name: 'Quartz Payments', ticker: 'QPAY', exchange: 'NYSE', sector: 'Fintech', status: 'listed', expected_listing_date: '2026-07-10', expected_pricing_date: '2026-07-09', current_price_range_low: 27, current_price_range_high: 29, estimated_deal_size: 1300000000, shares_offered: 47000000, description: 'Cross-border embedded payments network serving marketplaces and financial institutions.', source_label: 'Listed', trust_label: 'Confirmed', updated_at: new Date().toISOString() },
+      { id: 'mock-5', company_name: 'Summit Energy Storage', ticker: 'SMES', exchange: 'NASDAQ', sector: 'Clean Energy', status: 'withdrawn', expected_listing_date: '2026-07-18', expected_pricing_date: '2026-07-17', current_price_range_low: 14, current_price_range_high: 16, estimated_deal_size: 260000000, shares_offered: 17100000, description: 'Grid-scale battery and software optimization business that paused its listing after market volatility.', source_label: 'RW filing', trust_label: 'Withdrawn', updated_at: new Date().toISOString() }
+    ];
+
+    const mockEvents = [
+      { id: 'e1', event_type: 'amended', title: 'Northstar Compute widened range', detail: 'Price range moved from $20-$23 to $22-$25 ahead of pricing.', company_name: 'Northstar Compute', event_time: new Date().toISOString(), source: 'SEC amendment' },
+      { id: 'e2', event_type: 'filed', title: 'Atlas BioSystems filed initial S-1', detail: 'New biotech filing entered the IPO pipeline with oncology focus.', company_name: 'Atlas BioSystems', event_time: new Date(Date.now() - 4 * 3600 * 1000).toISOString(), source: 'SEC filing' },
+      { id: 'e3', event_type: 'listed', title: 'Quartz Payments started trading', detail: 'Opened above range and finished day one with strong volume.', company_name: 'Quartz Payments', event_time: new Date(Date.now() - 18 * 3600 * 1000).toISOString(), source: 'Exchange' },
+      { id: 'e4', event_type: 'withdrawn', title: 'Summit Energy Storage withdrew', detail: 'Issuer postponed listing after recent sector volatility.', company_name: 'Summit Energy Storage', event_time: new Date(Date.now() - 28 * 3600 * 1000).toISOString(), source: 'SEC RW' }
+    ];
+
+    const state = {
+      activeView: 'dashboard',
+      companies: [],
+      events: [],
+      selectedCompanyId: null,
+      usingFallback: false,
+      filters: { search: '', status: 'all', exchange: 'all', sort: 'updated_desc' }
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      pageTitle: $('page-title'), companyGrid: $('company-grid'), calendarList: $('calendar-list'), pipelineBody: $('pipeline-body'),
+      watchlistGrid: $('watchlist-grid'), sourceGrid: $('source-grid'), eventFeed: $('event-feed'), detailName: $('detail-name'),
+      detailCard: $('detail-card'), radarCount: $('radar-count'), statsGrid: $('stats-grid'), dataMode: $('data-mode'),
+      lastSync: $('last-sync'), trackedCount: $('tracked-count'), realtimeStatus: $('realtime-status'), connectionState: $('connection-state'),
+      liveDot: $('live-dot'), toast: $('toast'), authBtn: $('auth-btn'), watchlistToggle: $('watchlist-toggle'),
+      searchInput: $('search-input'), statusFilter: $('status-filter'), exchangeFilter: $('exchange-filter'), sortFilter: $('sort-filter'),
+      views: { dashboard: $('view-dashboard'), calendar: $('view-calendar'), pipeline: $('view-pipeline'), watchlist: $('view-watchlist'), sources: $('view-sources') }
+    };
+
+    function formatCurrency(v){ if(v==null) return '—'; return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v); }
+    function formatCompact(v){ if(v==null) return '—'; return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:1}).format(v); }
+    function formatDate(v){ if(!v) return '—'; return new Date(v).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+    function formatRange(l,h){ if(l==null && h==null) return 'TBD'; return '$' + (l ?? '—') + ' - $' + (h ?? '—'); }
+    function normalizeStatus(s){ return String(s || '').toLowerCase(); }
+    function relativeTime(v){ if(!v) return '—'; const sec = Math.floor((Date.now() - new Date(v).getTime())/1000); if(sec<60) return sec+'s ago'; const m=Math.floor(sec/60); if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
+    function showToast(msg){ els.toast.textContent = msg; els.toast.classList.remove('hidden'); clearTimeout(showToast.t); showToast.t = setTimeout(()=>els.toast.classList.add('hidden'), 2600); }
+    function metric(label, value, note){ return '<article class="metric-card glass"><span>'+label+'</span><strong>'+value+'</strong><small>'+note+'</small></article>'; }
+    function statusClass(status){ const s = normalizeStatus(status); if(['filed','amended','marketing'].includes(s)) return 'status-filed'; if(s==='pricing') return 'status-pricing'; if(s==='listed') return 'status-listed'; if(s==='withdrawn') return 'status-withdrawn'; return 'status-filed'; }
+    function watchlistIds(){ try { return JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]'); } catch { return []; } }
+    function setWatchlistIds(ids){ localStorage.setItem(WATCHLIST_KEY, JSON.stringify(ids)); }
+
+    function matchesFilters(company){
+      const search = state.filters.search.trim().toLowerCase();
+      const hay = [company.company_name, company.ticker, company.sector, company.description].filter(Boolean).join(' ').toLowerCase();
+      const bySearch = !search || hay.includes(search);
+      const byStatus = state.filters.status === 'all' || normalizeStatus(company.status) === state.filters.status;
+      const byExchange = state.filters.exchange === 'all' || String(company.exchange || '').toUpperCase() === state.filters.exchange;
+      return bySearch && byStatus && byExchange;
+    }
+
+    function sortCompanies(list){
+      const items = [...list];
+      switch (state.filters.sort) {
+        case 'date_asc': return items.sort((a,b)=> new Date(a.expected_listing_date || 0) - new Date(b.expected_listing_date || 0));
+        case 'deal_desc': return items.sort((a,b)=> (b.estimated_deal_size || 0) - (a.estimated_deal_size || 0));
+        case 'name_asc': return items.sort((a,b)=> String(a.company_name).localeCompare(String(b.company_name)));
+        default: return items.sort((a,b)=> new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
+      }
+    }
+
+    function filteredCompanies(){ return sortCompanies(state.companies.filter(matchesFilters)); }
+
+    function renderMetrics(){
+      const companies = filteredCompanies();
+      const pricingSoon = companies.filter(c => normalizeStatus(c.status) === 'pricing').length;
+      const listed = companies.filter(c => normalizeStatus(c.status) === 'listed').length;
+      els.statsGrid.innerHTML = [
+        metric('Total tracked', companies.length, 'matching current filters'),
+        metric('Pricing in 7 days', pricingSoon, 'most actionable deals'),
+        metric('Live this month', listed, 'already listed names'),
+        metric('Change alerts', state.events.length, 'recent pipeline events')
+      ].join('');
+      els.trackedCount.textContent = String(companies.length);
+      els.radarCount.textContent = companies.length + ' issuers';
+    }
+
+    function renderCompanyCards(){
+      const companies = filteredCompanies();
+      if(!companies.length){ els.companyGrid.innerHTML = '<div class="empty-box">No IPOs match the current filters.</div>'; return; }
+      els.companyGrid.innerHTML = companies.map(c => `
+        <article class="company-card" data-company-id="${c.id}">
+          <header>
+            <div>
+              <h4>${c.company_name}</h4>
+              <div class="card-meta">${c.ticker || 'TBD'} • ${c.exchange || 'Unassigned'} • ${c.sector || 'Sector TBD'}</div>
+            </div>
+            <span class="status-badge ${statusClass(c.status)}">${c.status}</span>
+          </header>
+          <p class="card-copy">${c.description || 'No company description yet.'}</p>
+          <div class="card-foot">
+            <div class="meta-block"><span class="mini-label">Expected listing</span><strong>${formatDate(c.expected_listing_date)}</strong></div>
+            <div class="meta-block"><span class="mini-label">Estimated deal</span><strong>${formatCompact(c.estimated_deal_size)}</strong></div>
+            <div class="meta-block"><span class="mini-label">Price range</span><strong>${formatRange(c.current_price_range_low, c.current_price_range_high)}</strong></div>
+            <div class="meta-block"><span class="mini-label">Source label</span><strong>${c.source_label || c.last_source || 'Live data'}</strong></div>
+          </div>
+        </article>`).join('');
+      [...els.companyGrid.querySelectorAll('[data-company-id]')].forEach(card => card.addEventListener('click', ()=>{ state.selectedCompanyId = card.dataset.companyId; renderDetail(); }));
+    }
+
+    function renderCalendar(){
+      const companies = filteredCompanies().filter(c => c.expected_listing_date || c.expected_pricing_date);
+      if(!companies.length){ els.calendarList.innerHTML = '<div class="empty-box">No dated IPO events available.</div>'; return; }
+      els.calendarList.innerHTML = companies.map(c => `
+        <article class="calendar-card">
+          <header>
+            <div>
+              <h4>${c.company_name}</h4>
+              <div class="card-meta">${c.ticker || 'TBD'} • ${c.exchange || 'Unassigned'}</div>
+            </div>
+            <span class="status-badge ${statusClass(c.status)}">${c.status}</span>
+          </header>
+          <div class="calendar-meta">
+            <div class="meta-block"><span class="mini-label">Pricing date</span><strong>${formatDate(c.expected_pricing_date)}</strong></div>
+            <div class="meta-block"><span class="mini-label">Listing date</span><strong>${formatDate(c.expected_listing_date)}</strong></div>
+          </div>
+        </article>`).join('');
+    }
+
+    function renderPipeline(){
+      const companies = filteredCompanies();
+      if(!companies.length){ els.pipelineBody.innerHTML = '<tr><td colspan="7">No issuers match current filters.</td></tr>'; return; }
+      els.pipelineBody.innerHTML = companies.map(c => `
+        <tr>
+          <td><strong>${c.company_name}</strong><br><span class="detail-note">${c.ticker || 'TBD'}</span></td>
+          <td><span class="status-badge ${statusClass(c.status)}">${c.status}</span></td>
+          <td>${c.exchange || '—'}</td>
+          <td>${formatDate(c.expected_listing_date || c.expected_pricing_date)}</td>
+          <td>${formatRange(c.current_price_range_low, c.current_price_range_high)}</td>
+          <td>${formatCompact(c.estimated_deal_size)}</td>
+          <td><button class="btn btn-secondary small row-detail" data-company-id="${c.id}">View</button></td>
+        </tr>`).join('');
+      [...document.querySelectorAll('.row-detail')].forEach(btn => btn.addEventListener('click', ()=>{ state.selectedCompanyId = btn.dataset.companyId; renderDetail(); showToast('Issuer details opened'); }));
+    }
+
+    function renderEvents(){
+      if(!state.events.length){ els.eventFeed.innerHTML = '<div class="empty-box">No event feed yet. Add rows into Supabase table ipo_events.</div>'; return; }
+      els.eventFeed.innerHTML = state.events.map(e => `
+        <article class="event-item">
+          <header>
+            <span class="status-badge ${statusClass(e.event_type === 'amended' ? 'filed' : e.event_type)}">${e.event_type || 'update'}</span>
+            <span class="detail-note">${relativeTime(e.event_time)}</span>
+          </header>
+          <strong>${e.title}</strong>
+          <p>${e.detail || 'New pipeline event recorded.'}</p>
+          <div class="detail-note">${e.company_name || 'IPO issuer'} • ${e.source || 'Source unknown'}</div>
+        </article>`).join('');
+    }
+
+    function renderDetail(){
+      const company = state.companies.find(c => c.id === state.selectedCompanyId) || filteredCompanies()[0];
+      if(!company) {
+        els.detailName.textContent = 'Select an IPO';
+        els.detailCard.classList.add('empty-state');
+        els.detailCard.innerHTML = 'Click any issuer card to see deal terms, catalysts, risks, and timeline.';
+        return;
+      }
+      state.selectedCompanyId = company.id;
+      els.detailName.textContent = company.company_name;
+      const saved = watchlistIds().includes(company.id);
+      els.watchlistToggle.textContent = saved ? '★ Saved' : '☆ Save';
+      els.detailCard.classList.remove('empty-state');
+      els.detailCard.innerHTML = `
+        <div class="detail-topline">
+          <div>
+            <h4>${company.company_name}</h4>
+            <div class="detail-note">${company.ticker || 'TBD'} • ${company.exchange || 'Unassigned'} • ${company.sector || 'Sector TBD'}</div>
+          </div>
+          <span class="status-badge ${statusClass(company.status)}">${company.status}</span>
+        </div>
+        <p class="detail-copy">${company.description || 'Add a filing summary here.'}</p>
+        <div class="kv-grid">
+          <div class="meta-block"><span class="mini-label">Expected pricing</span><strong>${formatDate(company.expected_pricing_date)}</strong></div>
+          <div class="meta-block"><span class="mini-label">Expected listing</span><strong>${formatDate(company.expected_listing_date)}</strong></div>
+          <div class="meta-block"><span class="mini-label">Price range</span><strong>${formatRange(company.current_price_range_low, company.current_price_range_high)}</strong></div>
+          <div class="meta-block"><span class="mini-label">Shares offered</span><strong>${company.shares_offered ? new Intl.NumberFormat('en-US').format(company.shares_offered) : '—'}</strong></div>
+          <div class="meta-block"><span class="mini-label">Estimated deal</span><strong>${formatCurrency(company.estimated_deal_size)}</strong></div>
+          <div class="meta-block"><span class="mini-label">Trust label</span><strong>${company.trust_label || company.source_label || 'Live data'}</strong></div>
+        </div>
+        <div class="detail-note">Updated ${relativeTime(company.updated_at)}</div>`;
+    }
+
+    function renderWatchlist(){
+      const ids = watchlistIds();
+      const companies = state.companies.filter(c => ids.includes(c.id));
+      if(!companies.length){ els.watchlistGrid.innerHTML = '<div class="empty-box">Save issuers from the detail panel to build a personal watchlist.</div>'; return; }
+      els.watchlistGrid.innerHTML = companies.map(c => `
+        <article class="company-card" data-company-id="${c.id}">
+          <header>
+            <div>
+              <h4>${c.company_name}</h4>
+              <div class="card-meta">${c.ticker || 'TBD'} • ${c.exchange || 'Unassigned'}</div>
+            </div>
+            <span class="status-badge ${statusClass(c.status)}">${c.status}</span>
+          </header>
+          <p class="card-copy">${c.description || 'No summary yet.'}</p>
+        </article>`).join('');
+      [...els.watchlistGrid.querySelectorAll('[data-company-id]')].forEach(card => card.addEventListener('click', ()=>{ state.selectedCompanyId = card.dataset.companyId; renderDetail(); }));
+    }
+
+    function renderSources(){
+      const items = [
+        { name: 'SEC EDGAR', health: 'Primary', note: 'Use as the filing truth layer for S-1, F-1, amendments, and withdrawals.' },
+        { name: 'Nasdaq IPO page', health: 'Secondary', note: 'Good public market-facing layer. Mark dates as estimated unless exchange-confirmed.' },
+        { name: 'NYSE IPO Center', health: 'Secondary', note: 'Useful to track filed, amended, and withdrawn deal changes.' },
+        { name: 'Supabase Realtime', health: 'Core', note: 'Pushes live table changes into the dashboard without a rebuild.' }
+      ];
+      els.sourceGrid.innerHTML = items.map(i => `
+        <article class="source-card">
+          <span>${i.health}</span>
+          <h4>${i.name}</h4>
+          <p class="card-copy">${i.note}</p>
+        </article>`).join('');
+    }
+
+    function renderAll(){
+      renderMetrics();
+      renderCompanyCards();
+      renderCalendar();
+      renderPipeline();
+      renderEvents();
+      renderWatchlist();
+      renderSources();
+      renderDetail();
+      els.dataMode.textContent = state.usingFallback ? 'Demo fallback' : 'Supabase live';
+      els.lastSync.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function setView(view){
+      state.activeView = view;
+      els.pageTitle.textContent = ({ dashboard: 'Executive Dashboard', calendar: 'IPO Calendar', pipeline: 'Pipeline Control', watchlist: 'Personal Watchlist', sources: 'Source Health' })[view] || 'Executive Dashboard';
+      Object.keys(els.views).forEach(key => els.views[key].classList.toggle('hidden', key !== view));
+      document.querySelectorAll('.nav-link').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+    }
+
+    function applyFilters(){
+      state.filters.search = els.searchInput.value;
+      state.filters.status = els.statusFilter.value;
+      state.filters.exchange = els.exchangeFilter.value;
+      state.filters.sort = els.sortFilter.value;
+      renderAll();
+    }
+
+    function toggleWatchlist(id){
+      const ids = new Set(watchlistIds());
+      if(ids.has(id)) { ids.delete(id); showToast('Removed from watchlist'); }
+      else { ids.add(id); showToast('Saved to watchlist'); }
+      setWatchlistIds([...ids]);
+      renderWatchlist();
+      renderDetail();
+    }
+
+    async function loadSession(){
+      if (!supabase) return;
+      try {
+        const { data } = await supabase.auth.getSession();
+        const email = data.session && data.session.user && data.session.user.email;
+        els.authBtn.textContent = email ? ('Signed in: ' + email) : 'Sign in for Watchlist';
+      } catch {
+        els.authBtn.textContent = 'Sign in for Watchlist';
+      }
+    }
+
+    async function signInFlow(){
+      if (!supabase) {
+        showToast('Supabase client not connected');
+        return;
+      }
+      const email = window.prompt('Enter your email for Supabase magic-link sign in:');
+      if(!email) return;
+      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
+      if(error){ showToast(error.message); return; }
+      showToast('Magic link sent. Finish sign-in from your inbox.');
+    }
+
+    async function fetchLiveData(silent){
+      try {
+        if (!supabase) throw new Error('Supabase client unavailable');
+
+        const [companiesRes, eventsRes] = await Promise.all([
+          supabase.from(COMPANY_TABLE).select('*').order('updated_at', { ascending: false }).limit(50),
+          supabase.from(EVENT_TABLE).select('*').order('event_time', { ascending: false }).limit(20)
+        ]);
+
+        if (companiesRes.error || !companiesRes.data || !companiesRes.data.length) {
+          throw new Error(companiesRes.error?.message || 'No live company rows found');
+        }
+
+        state.companies = companiesRes.data;
+        state.events = eventsRes.data || [];
+        state.usingFallback = false;
+        els.connectionState.textContent = 'Connected';
+        els.liveDot.classList.add('connected');
+        if(!silent) showToast('Live IPO data loaded');
+      } catch (e) {
+        console.warn('Using fallback data:', e.message);
+        state.companies = mockCompanies;
+        state.events = mockEvents;
+        state.usingFallback = true;
+        els.connectionState.textContent = 'Demo Mode';
+        els.liveDot.classList.remove('connected');
+        if(!silent) showToast('Using demo fallback data');
+      }
+      renderAll();
+    }
+
+    function attachRealtime(){
+      if (!supabase) return;
+      try {
+        supabase.channel('ipo-live-dashboard')
+          .on('postgres_changes', { event: '*', schema: 'public', table: COMPANY_TABLE }, () => fetchLiveData(true))
+          .on('postgres_changes', { event: '*', schema: 'public', table: EVENT_TABLE }, () => fetchLiveData(true))
+          .subscribe((status) => {
+            const ok = status === 'SUBSCRIBED';
+            els.liveDot.classList.toggle('connected', ok);
+            els.connectionState.textContent = ok ? 'Connected' : (state.usingFallback ? 'Demo Mode' : status);
+            els.realtimeStatus.textContent = ok ? 'Active' : 'Inactive';
+          });
+      } catch (err) {
+        console.warn('Realtime subscription error:', err);
+      }
+    }
+
+    function bindEvents(){
+      document.querySelectorAll('.nav-link').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
+      [els.searchInput, els.statusFilter, els.exchangeFilter, els.sortFilter].forEach(el => el.addEventListener('input', applyFilters));
+      $('refresh-btn').addEventListener('click', () => fetchLiveData(false));
+      $('hero-refresh').addEventListener('click', () => fetchLiveData(false));
+      $('hero-demo').addEventListener('click', () => { state.companies = mockCompanies; state.events = mockEvents; state.usingFallback = true; renderAll(); showToast('Demo data loaded'); });
+      els.authBtn.addEventListener('click', signInFlow);
+      els.watchlistToggle.addEventListener('click', () => state.selectedCompanyId && toggleWatchlist(state.selectedCompanyId));
+    }
+
+    async function init(){
+      bindEvents();
+      await loadSession();
+      await fetchLiveData(true);
+      attachRealtime();
+      if (supabase) {
+        supabase.auth.onAuthStateChange(() => loadSession());
+      }
+    }
+    init();
+  </script>
 </body>
 </html>
