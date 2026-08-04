@@ -572,7 +572,7 @@
         });
       }
     } catch (err) {
-      console.warn("Supabase client init failed:", err);
+      console.warn("Supabase init bypassed:", err);
     }
 
     const mockCompanies = [
@@ -616,7 +616,7 @@
     function formatRange(l,h){ if(l==null && h==null) return 'TBD'; return '$' + (l ?? '—') + ' - $' + (h ?? '—'); }
     function normalizeStatus(s){ return String(s || '').toLowerCase(); }
     function relativeTime(v){ if(!v) return '—'; const sec = Math.floor((Date.now() - new Date(v).getTime())/1000); if(sec<60) return sec+'s ago'; const m=Math.floor(sec/60); if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
-    function showToast(msg){ els.toast.textContent = msg; els.toast.classList.remove('hidden'); clearTimeout(showToast.t); showToast.t = setTimeout(()=>els.toast.classList.add('hidden'), 2600); }
+    function showToast(msg){ if(!els.toast) return; els.toast.textContent = msg; els.toast.classList.remove('hidden'); clearTimeout(showToast.t); showToast.t = setTimeout(()=>els.toast.classList.add('hidden'), 2600); }
     function metric(label, value, note){ return '<article class="metric-card glass"><span>'+label+'</span><strong>'+value+'</strong><small>'+note+'</small></article>'; }
     function statusClass(status){ const s = normalizeStatus(status); if(['filed','amended','marketing'].includes(s)) return 'status-filed'; if(s==='pricing') return 'status-pricing'; if(s==='listed') return 'status-listed'; if(s==='withdrawn') return 'status-withdrawn'; return 'status-filed'; }
     function watchlistIds(){ try { return JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]'); } catch { return []; } }
@@ -836,7 +836,7 @@
       if (!supabase) return;
       try {
         const { data } = await supabase.auth.getSession();
-        const email = data.session && data.session.user && data.session.user.email;
+        const email = data?.session?.user?.email;
         els.authBtn.textContent = email ? ('Signed in: ' + email) : 'Sign in for Watchlist';
       } catch {
         els.authBtn.textContent = 'Sign in for Watchlist';
@@ -844,10 +844,7 @@
     }
 
     async function signInFlow(){
-      if (!supabase) {
-        showToast('Supabase client not connected');
-        return;
-      }
+      if (!supabase) { showToast('Supabase client not connected'); return; }
       const email = window.prompt('Enter your email for Supabase magic-link sign in:');
       if(!email) return;
       const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
@@ -856,33 +853,37 @@
     }
 
     async function fetchLiveData(silent){
+      let loadedLive = false;
       try {
-        if (!supabase) throw new Error('Supabase client unavailable');
+        if (supabase) {
+          const [companiesRes, eventsRes] = await Promise.all([
+            supabase.from(COMPANY_TABLE).select('*').order('updated_at', { ascending: false }).limit(50),
+            supabase.from(EVENT_TABLE).select('*').order('event_time', { ascending: false }).limit(20)
+          ]);
 
-        const [companiesRes, eventsRes] = await Promise.all([
-          supabase.from(COMPANY_TABLE).select('*').order('updated_at', { ascending: false }).limit(50),
-          supabase.from(EVENT_TABLE).select('*').order('event_time', { ascending: false }).limit(20)
-        ]);
-
-        if (companiesRes.error || !companiesRes.data || !companiesRes.data.length) {
-          throw new Error(companiesRes.error?.message || 'No live company rows found');
+          if (companiesRes?.data && companiesRes.data.length > 0) {
+            state.companies = companiesRes.data;
+            state.events = eventsRes?.data || [];
+            state.usingFallback = false;
+            els.connectionState.textContent = 'Connected';
+            els.liveDot.classList.add('connected');
+            loadedLive = true;
+            if(!silent) showToast('Live IPO data loaded');
+          }
         }
-
-        state.companies = companiesRes.data;
-        state.events = eventsRes.data || [];
-        state.usingFallback = false;
-        els.connectionState.textContent = 'Connected';
-        els.liveDot.classList.add('connected');
-        if(!silent) showToast('Live IPO data loaded');
       } catch (e) {
-        console.warn('Using fallback data:', e.message);
+        console.warn("Live fetch exception:", e);
+      }
+
+      if (!loadedLive) {
         state.companies = mockCompanies;
         state.events = mockEvents;
         state.usingFallback = true;
         els.connectionState.textContent = 'Demo Mode';
         els.liveDot.classList.remove('connected');
-        if(!silent) showToast('Using demo fallback data');
+        if(!silent) showToast('Loaded demo records');
       }
+
       renderAll();
     }
 
@@ -914,15 +915,24 @@
     }
 
     async function init(){
-      bindEvents();
-      await loadSession();
-      await fetchLiveData(true);
-      attachRealtime();
-      if (supabase) {
-        supabase.auth.onAuthStateChange(() => loadSession());
+      try {
+        bindEvents();
+        await loadSession();
+        await fetchLiveData(true);
+        attachRealtime();
+        if (supabase) {
+          supabase.auth.onAuthStateChange(() => loadSession());
+        }
+      } catch (err) {
+        console.error("Initialization error, forcing fallback:", err);
+        state.companies = mockCompanies;
+        state.events = mockEvents;
+        state.usingFallback = true;
+        renderAll();
       }
     }
-    init();
+
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
