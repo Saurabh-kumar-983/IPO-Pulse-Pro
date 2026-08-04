@@ -8,51 +8,60 @@
   <style>
     :root {
       --bg: #07111f;
-      --bg2: #0b1830;
-      --panel: rgba(11, 28, 48, 0.86);
-      --panel2: rgba(17, 39, 67, 0.94);
-      --text: #eaf2ff;
-      --muted: #9ab0cc;
-      --line: rgba(171, 201, 255, 0.14);
-      --blue: #4f8cff;
-      --blue2: #7bb6ff;
+      --bg-soft: #0d1b2e;
+      --panel: rgba(11, 28, 48, 0.78);
+      --panel-2: rgba(18, 39, 65, 0.9);
+      --text: #e7eef8;
+      --muted: #9bb2cf;
+      --line: rgba(180, 209, 255, 0.12);
+      --primary: #4f8cff;
+      --primary-2: #7bb6ff;
       --green: #3dd598;
       --yellow: #ffcf5c;
       --red: #ff6b81;
-      --purple: #a284ff;
-      --shadow: 0 24px 60px rgba(0,0,0,.28);
+      --purple: #9d7bff;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
       --radius-xl: 24px;
       --radius-lg: 18px;
       --radius-md: 14px;
       --radius-sm: 10px;
     }
+
     * { box-sizing: border-box; }
+
     html, body {
       margin: 0;
-      min-height: 100%;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color: var(--text);
+      padding: 0;
       background:
-        radial-gradient(circle at 0% 0%, rgba(79,140,255,.18), transparent 28%),
-        radial-gradient(circle at 100% 10%, rgba(61,213,152,.12), transparent 22%),
-        linear-gradient(180deg, var(--bg) 0%, #091728 100%);
+        radial-gradient(circle at top left, rgba(79, 140, 255, 0.16), transparent 30%),
+        radial-gradient(circle at right, rgba(61, 213, 152, 0.12), transparent 28%),
+        linear-gradient(180deg, #07111f 0%, #091728 100%);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      min-height: 100%;
     }
+
     body { min-height: 100vh; }
     button, input, select { font: inherit; }
     button { cursor: pointer; }
+    img { max-width: 100%; }
+    code { color: var(--primary-2); }
+    .hidden { display: none !important; }
+
     .glass {
       background: var(--panel);
+      backdrop-filter: blur(18px);
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
     }
-    .hidden { display: none !important; }
-    .app {
+
+    .app-shell {
       display: grid;
-      grid-template-columns: 280px minmax(0, 1fr);
+      grid-template-columns: 280px 1fr;
       gap: 24px;
       padding: 24px;
     }
+
     .sidebar {
       min-height: calc(100vh - 48px);
       border-radius: var(--radius-xl);
@@ -61,157 +70,161 @@
       flex-direction: column;
       justify-content: space-between;
     }
+
     .brand {
       display: flex;
       gap: 14px;
       align-items: center;
       margin-bottom: 28px;
     }
-    .brand-logo {
-      width: 56px;
-      height: 56px;
-      flex: 0 0 auto;
-    }
+
+    .brand-logo { width: 52px; height: 52px; }
+    .brand h1, .hero h3, .panel h3, .topbar h2 { margin: 0; }
+
     .eyebrow {
-      margin: 0 0 6px;
-      font-size: 11px;
-      letter-spacing: .14em;
       text-transform: uppercase;
-      color: var(--blue2);
+      letter-spacing: 0.14em;
+      font-size: 11px;
+      color: var(--primary-2);
+      margin: 0 0 6px;
     }
-    h1,h2,h3,h4,p { margin: 0; }
+
     .nav-stack { display: grid; gap: 10px; }
+
     .nav-link {
       width: 100%;
+      border: 1px solid transparent;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text);
       padding: 13px 14px;
       border-radius: 12px;
-      border: 1px solid transparent;
-      background: rgba(255,255,255,.03);
-      color: var(--text);
       text-align: left;
-      transition: .2s ease;
+      transition: 0.2s ease;
     }
+
     .nav-link:hover, .nav-link.active {
-      background: rgba(79,140,255,.16);
-      border-color: rgba(123,182,255,.24);
+      background: rgba(79, 140, 255, 0.18);
+      border-color: rgba(123, 182, 255, 0.3);
     }
+
     .sidebar-card {
       border-radius: var(--radius-lg);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.03);
+      background: rgba(255, 255, 255, 0.03);
       padding: 16px 18px;
     }
-    .sidebar-card ul {
-      margin: 8px 0 0;
-      padding-left: 18px;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-    .main {
-      display: grid;
-      gap: 20px;
-      min-width: 0;
-    }
+
+    .sidebar-card ul { padding-left: 18px; color: var(--muted); line-height: 1.7; }
+    .main-panel { display: grid; gap: 20px; }
+    .topbar, .hero, .filters, .metric-card, .panel { border-radius: var(--radius-xl); }
+
     .topbar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       gap: 18px;
     }
+
     .topbar-actions, .hero-actions {
       display: flex;
       gap: 12px;
       align-items: center;
       flex-wrap: wrap;
     }
+
     .live-pill {
       display: inline-flex;
       align-items: center;
       gap: 10px;
       padding: 10px 14px;
-      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,.05);
+      border-radius: 999px;
       color: var(--muted);
     }
+
     .live-dot {
       width: 10px;
       height: 10px;
       border-radius: 50%;
       background: var(--yellow);
-      box-shadow: 0 0 0 6px rgba(255,207,92,.15);
+      box-shadow: 0 0 0 6px rgba(255, 207, 92, 0.15);
     }
+
     .live-dot.connected {
       background: var(--green);
-      box-shadow: 0 0 0 6px rgba(61,213,152,.15);
+      box-shadow: 0 0 0 6px rgba(61, 213, 152, 0.15);
     }
+
     .btn {
       border: 0;
       border-radius: 12px;
       padding: 12px 16px;
       font-weight: 700;
     }
+
     .btn.small { padding: 9px 12px; font-size: 14px; }
-    .btn-primary { background: linear-gradient(135deg, var(--blue), #6b7dff); color: #fff; }
-    .btn-secondary { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--line); }
+    .btn-primary { background: linear-gradient(135deg, var(--primary), #6a7dff); color: white; }
+    .btn-secondary { background: rgba(255, 255, 255, 0.06); color: var(--text); border: 1px solid var(--line); }
+
     .hero {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 20px;
       padding: 24px;
-      border-radius: var(--radius-xl);
-    }
-    .hero-copy { color: var(--muted); line-height: 1.7; max-width: 760px; }
-    .hero-grid, .stats-grid, .source-grid {
       display: grid;
-      gap: 16px;
+      gap: 20px;
+      grid-template-columns: 1.3fr 1fr;
     }
+
+    .hero-copy { color: var(--muted); max-width: 720px; line-height: 1.7; }
+    .hero-grid, .stats-grid, .source-grid { display: grid; gap: 16px; }
     .hero-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .hero-stat, .metric-card, .company-card, .calendar-card, .event-item, .source-card, .detail-card {
-      background: var(--panel2);
+
+    .hero-stat, .metric-card, .source-card, .company-card, .calendar-card, .event-item, .detail-card {
+      background: var(--panel-2);
       border: 1px solid var(--line);
     }
-    .hero-stat, .metric-card, .company-card, .calendar-card, .event-item, .source-card, .detail-card {
-      border-radius: 18px;
-    }
-    .hero-stat, .metric-card, .source-card { padding: 18px; }
+
+    .hero-stat { padding: 18px; border-radius: 18px; }
     .hero-stat span, .metric-card span, .source-card span, .mini-label {
       display: block;
       color: var(--muted);
       font-size: 13px;
       margin-bottom: 10px;
     }
+
     .hero-stat strong, .metric-card strong { font-size: 28px; }
+
     .filters {
-      display: grid;
-      grid-template-columns: 1.4fr repeat(3, 1fr);
-      gap: 16px;
       padding: 18px;
-      border-radius: var(--radius-xl);
+      display: grid;
+      gap: 16px;
+      grid-template-columns: 1.4fr repeat(3, 1fr);
     }
-    .filter-field { display: grid; gap: 8px; min-width: 0; }
+
+    .filter-field { display: grid; gap: 8px; }
+    .filter-grow { min-width: 0; }
     .filter-field label { font-size: 13px; color: var(--muted); }
     .filter-field input, .filter-field select {
       width: 100%;
-      padding: 13px 14px;
+      background: rgba(255, 255, 255, 0.04);
       color: var(--text);
-      background: rgba(255,255,255,.04);
       border: 1px solid var(--line);
       border-radius: 12px;
-      outline: none;
+      padding: 13px 14px;
     }
+
     .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .metric-card { padding: 18px 20px; }
     .metric-card small { color: var(--muted); }
-    .content {
+
+    .content-grid {
       display: grid;
-      grid-template-columns: minmax(0, 2fr) 420px;
       gap: 20px;
+      grid-template-columns: minmax(0, 2fr) 420px;
     }
-    .primary, .secondary { display: grid; gap: 20px; min-width: 0; }
-    .panel {
-      padding: 20px;
-      border-radius: var(--radius-xl);
-    }
+
+    .primary-column, .secondary-column { display: grid; gap: 20px; }
+    .panel { padding: 20px; }
+
     .panel-header {
       display: flex;
       justify-content: space-between;
@@ -219,49 +232,65 @@
       gap: 16px;
       margin-bottom: 18px;
     }
+
     .panel-badge, .status-badge, .source-badge {
-      padding: 8px 12px;
       border-radius: 999px;
+      padding: 8px 12px;
       font-size: 12px;
       font-weight: 700;
     }
-    .panel-badge { background: rgba(123,182,255,.12); color: var(--blue2); }
+
+    .panel-badge { background: rgba(123, 182, 255, 0.12); color: var(--primary-2); }
     .status-badge { text-transform: capitalize; }
-    .status-filed, .status-marketing { background: rgba(123,182,255,.12); color: var(--blue2); }
-    .status-pricing { background: rgba(255,207,92,.14); color: var(--yellow); }
-    .status-listed { background: rgba(61,213,152,.14); color: var(--green); }
-    .status-withdrawn { background: rgba(255,107,129,.14); color: var(--red); }
+    .status-filed, .status-marketing { background: rgba(123, 182, 255, 0.12); color: var(--primary-2); }
+    .status-pricing { background: rgba(255, 207, 92, 0.14); color: var(--yellow); }
+    .status-listed { background: rgba(61, 213, 152, 0.14); color: var(--green); }
+    .status-withdrawn { background: rgba(255, 107, 129, 0.14); color: var(--red); }
+    .source-badge { background: rgba(157, 123, 255, 0.12); color: #c7b4ff; }
+
     .company-grid, .calendar-list, .event-feed, .source-grid { display: grid; gap: 14px; }
     .company-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .compact-grid { grid-template-columns: 1fr; }
-    .company-card, .calendar-card, .source-card { padding: 18px; }
-    .company-card { cursor: pointer; transition: transform .18s ease, border-color .18s ease; }
-    .company-card:hover { transform: translateY(-2px); border-color: rgba(123,182,255,.24); }
-    .company-card header, .calendar-card header, .event-item header, .detail-topline {
+    .company-card, .calendar-card, .source-card { border-radius: 18px; padding: 18px; }
+
+    .company-card header, .calendar-card header {
       display: flex;
       justify-content: space-between;
-      gap: 12px;
       align-items: flex-start;
+      gap: 12px;
       margin-bottom: 14px;
     }
-    .company-card h4, .calendar-card h4, .source-card h4, .detail-card h4 { margin-bottom: 6px; }
-    .card-meta, .card-copy, .detail-copy, .detail-note, .event-item p, .table-wrap td { color: var(--muted); }
-    .card-copy, .detail-copy, .event-item p { line-height: 1.65; }
+
+    .company-card h4, .calendar-card h4, .source-card h4 { margin: 0 0 6px; }
+    .card-meta, .card-copy, .event-item p, .detail-copy, .kv-grid p, .table-wrap td { color: var(--muted); }
+    .card-copy, .event-item p, .detail-copy { line-height: 1.65; }
     .card-foot, .calendar-meta, .kv-grid { display: grid; gap: 10px; }
     .card-foot { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; }
+
     .meta-block {
-      background: rgba(255,255,255,.03);
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--line);
-      border-radius: 14px;
       padding: 12px;
+      border-radius: 14px;
     }
-    .meta-block strong { display: block; margin-top: 4px; }
+
+    .meta-block strong, .kv-grid strong { display: block; margin-top: 4px; }
     .table-wrap { overflow: auto; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 14px 10px; border-bottom: 1px solid var(--line); text-align: left; }
-    th { color: var(--blue2); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
-    .event-item { padding: 16px; }
-    .detail-card { min-height: 280px; padding: 18px; }
+    th { color: var(--primary-2); font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .event-item { padding: 16px; border-radius: 16px; }
+    .event-item header, .detail-topline {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .event-item strong, .detail-card h4 { display: block; margin-bottom: 6px; }
+    .event-item time, .detail-note { color: var(--muted); font-size: 13px; }
+    .detail-card { min-height: 280px; border-radius: 18px; padding: 18px; }
     .detail-card.empty-state {
       display: flex;
       align-items: center;
@@ -269,39 +298,44 @@
       text-align: center;
       color: var(--muted);
     }
+
     .kv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 16px 0; }
-    .empty-box {
-      padding: 28px 18px;
-      border-radius: 16px;
-      border: 1px dashed rgba(171,201,255,.25);
-      color: var(--muted);
-      text-align: center;
-    }
+
     .toast {
       position: fixed;
       right: 24px;
       bottom: 24px;
+      background: rgba(8, 20, 34, 0.94);
+      border: 1px solid var(--line);
+      color: var(--text);
+      padding: 14px 16px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
       max-width: 360px;
       z-index: 99;
-      background: rgba(8,20,34,.96);
-      color: var(--text);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      border-radius: 14px;
-      padding: 14px 16px;
     }
-    a { color: var(--blue2); }
+
+    .empty-box {
+      padding: 28px 18px;
+      border-radius: 16px;
+      border: 1px dashed rgba(180, 209, 255, 0.25);
+      color: var(--muted);
+      text-align: center;
+    }
+
     @media (max-width: 1220px) {
-      .content { grid-template-columns: 1fr; }
-      .secondary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .content-grid { grid-template-columns: 1fr; }
+      .secondary-column { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
+
     @media (max-width: 1024px) {
-      .app { grid-template-columns: 1fr; }
+      .app-shell { grid-template-columns: 1fr; }
       .sidebar { min-height: auto; }
-      .hero, .filters, .stats-grid, .company-grid, .secondary, .hero-grid { grid-template-columns: 1fr; }
+      .hero, .filters, .stats-grid, .company-grid, .secondary-column, .hero-grid { grid-template-columns: 1fr; }
     }
+
     @media (max-width: 720px) {
-      .app { padding: 14px; }
+      .app-shell { padding: 14px; }
       .sidebar, .panel, .hero, .filters { padding: 16px; }
       .topbar { flex-direction: column; align-items: flex-start; }
       .topbar-actions { width: 100%; }
@@ -311,11 +345,13 @@
   </style>
 </head>
 <body>
-  <div class="app">
+
+  <!-- App Structure -->
+  <div class="app-shell">
     <aside class="sidebar glass">
       <div>
         <div class="brand">
-          <svg class="brand-logo" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" aria-label="IPO Pulse Pro logo" role="img">
+          <svg class="brand-logo" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
             <rect width="128" height="128" rx="28" fill="#07111F"></rect>
             <rect x="16" y="16" width="96" height="96" rx="22" fill="url(#g1)" fill-opacity="0.16" stroke="#4F8CFF" stroke-opacity="0.4"></rect>
             <path d="M32 86L50 66L64 74L94 42" stroke="#7BB6FF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -345,14 +381,13 @@
         <p class="eyebrow">Deployment Notes</p>
         <ul>
           <li>Single-file GitHub Pages build</li>
-          <li>No separate CSS or JS files required</li>
           <li>Supabase realtime ready</li>
           <li>Fallback demo mode included</li>
         </ul>
       </div>
     </aside>
 
-    <main class="main">
+    <main class="main-panel">
       <header class="topbar">
         <div>
           <p class="eyebrow">One-point solution for IPO discovery</p>
@@ -387,7 +422,7 @@
       </section>
 
       <section class="filters glass">
-        <div class="filter-field">
+        <div class="filter-field filter-grow">
           <label for="search-input">Search issuer / ticker</label>
           <input id="search-input" type="search" placeholder="Stripe, CoreWeave, CHYM, healthcare..." />
         </div>
@@ -424,8 +459,8 @@
 
       <section class="stats-grid" id="stats-grid"></section>
 
-      <section class="content">
-        <div class="primary">
+      <section class="content-grid">
+        <div class="primary-column">
           <section class="panel glass" id="view-dashboard">
             <div class="panel-header">
               <div>
@@ -493,7 +528,7 @@
           </section>
         </div>
 
-        <aside class="secondary">
+        <aside class="secondary-column">
           <section class="panel glass">
             <div class="panel-header">
               <div>
@@ -521,343 +556,5 @@
 
   <div class="toast hidden" id="toast"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    const SUPABASE_URL = "https://iizpmjortvijdwyydtec.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlpenBtam9ydHZpamR3eXlkdGVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyOTEwMTcsImV4cCI6MjA5Nzg2NzAxN30.41CO6OSasC1b6m6uoNzURgNQGymOciABNpr1-FVO-8w";
-    const COMPANY_TABLE = "ipo_companies";
-    const EVENT_TABLE = "ipo_events";
-    const WATCHLIST_KEY = "ipo-pulse-pro-watchlist";
-
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
-      realtime: { params: { eventsPerSecond: 4 } }
-    });
-
-    const mockCompanies = [
-      { id: 'mock-1', company_name: 'Northstar Compute', ticker: 'NSTC', exchange: 'NASDAQ', sector: 'AI Infrastructure', status: 'pricing', expected_listing_date: '2026-07-24', expected_pricing_date: '2026-07-23', current_price_range_low: 22, current_price_range_high: 25, estimated_deal_size: 920000000, shares_offered: 36800000, description: 'GPU cloud infrastructure provider with hyperscaler and enterprise demand tailwinds.', source_label: 'Official SEC + desk intelligence', trust_label: 'Estimated pricing window', updated_at: new Date().toISOString() },
-      { id: 'mock-2', company_name: 'Helio Robotics', ticker: 'HLRO', exchange: 'NYSE', sector: 'Industrial Automation', status: 'marketing', expected_listing_date: '2026-07-31', expected_pricing_date: '2026-07-30', current_price_range_low: 16, current_price_range_high: 19, estimated_deal_size: 410000000, shares_offered: 22100000, description: 'Warehouse robotics and fulfillment software operator expanding across North America and Europe.', source_label: 'SEC filing data', trust_label: 'Filed and marketing', updated_at: new Date().toISOString() },
-      { id: 'mock-3', company_name: 'Atlas BioSystems', ticker: 'ATLB', exchange: 'NASDAQ', sector: 'Biotech', status: 'filed', expected_listing_date: '2026-08-12', expected_pricing_date: '2026-08-11', current_price_range_low: null, current_price_range_high: null, estimated_deal_size: 185000000, shares_offered: 12300000, description: 'Precision oncology platform advancing next-generation diagnostics and companion therapies.', source_label: 'Initial S-1', trust_label: 'Early stage', updated_at: new Date().toISOString() },
-      { id: 'mock-4', company_name: 'Quartz Payments', ticker: 'QPAY', exchange: 'NYSE', sector: 'Fintech', status: 'listed', expected_listing_date: '2026-07-10', expected_pricing_date: '2026-07-09', current_price_range_low: 27, current_price_range_high: 29, estimated_deal_size: 1300000000, shares_offered: 47000000, description: 'Cross-border embedded payments network serving marketplaces and financial institutions.', source_label: 'Listed', trust_label: 'Confirmed', updated_at: new Date().toISOString() },
-      { id: 'mock-5', company_name: 'Summit Energy Storage', ticker: 'SMES', exchange: 'NASDAQ', sector: 'Clean Energy', status: 'withdrawn', expected_listing_date: '2026-07-18', expected_pricing_date: '2026-07-17', current_price_range_low: 14, current_price_range_high: 16, estimated_deal_size: 260000000, shares_offered: 17100000, description: 'Grid-scale battery and software optimization business that paused its listing after market volatility.', source_label: 'RW filing', trust_label: 'Withdrawn', updated_at: new Date().toISOString() }
-    ];
-
-    const mockEvents = [
-      { id: 'e1', event_type: 'amended', title: 'Northstar Compute widened range', detail: 'Price range moved from $20-$23 to $22-$25 ahead of pricing.', company_name: 'Northstar Compute', event_time: new Date().toISOString(), source: 'SEC amendment' },
-      { id: 'e2', event_type: 'filed', title: 'Atlas BioSystems filed initial S-1', detail: 'New biotech filing entered the IPO pipeline with oncology focus.', company_name: 'Atlas BioSystems', event_time: new Date(Date.now() - 4 * 3600 * 1000).toISOString(), source: 'SEC filing' },
-      { id: 'e3', event_type: 'listed', title: 'Quartz Payments started trading', detail: 'Opened above range and finished day one with strong volume.', company_name: 'Quartz Payments', event_time: new Date(Date.now() - 18 * 3600 * 1000).toISOString(), source: 'Exchange' },
-      { id: 'e4', event_type: 'withdrawn', title: 'Summit Energy Storage withdrew', detail: 'Issuer postponed listing after recent sector volatility.', company_name: 'Summit Energy Storage', event_time: new Date(Date.now() - 28 * 3600 * 1000).toISOString(), source: 'SEC RW' }
-    ];
-
-    const state = {
-      activeView: 'dashboard',
-      companies: [],
-      events: [],
-      selectedCompanyId: null,
-      usingFallback: false,
-      filters: { search: '', status: 'all', exchange: 'all', sort: 'updated_desc' }
-    };
-
-    const $ = (id) => document.getElementById(id);
-    const els = {
-      pageTitle: $('page-title'), companyGrid: $('company-grid'), calendarList: $('calendar-list'), pipelineBody: $('pipeline-body'),
-      watchlistGrid: $('watchlist-grid'), sourceGrid: $('source-grid'), eventFeed: $('event-feed'), detailName: $('detail-name'),
-      detailCard: $('detail-card'), radarCount: $('radar-count'), statsGrid: $('stats-grid'), dataMode: $('data-mode'),
-      lastSync: $('last-sync'), trackedCount: $('tracked-count'), realtimeStatus: $('realtime-status'), connectionState: $('connection-state'),
-      liveDot: $('live-dot'), toast: $('toast'), authBtn: $('auth-btn'), watchlistToggle: $('watchlist-toggle'),
-      searchInput: $('search-input'), statusFilter: $('status-filter'), exchangeFilter: $('exchange-filter'), sortFilter: $('sort-filter'),
-      views: { dashboard: $('view-dashboard'), calendar: $('view-calendar'), pipeline: $('view-pipeline'), watchlist: $('view-watchlist'), sources: $('view-sources') }
-    };
-
-    function formatCurrency(v){ if(v==null) return '—'; return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v); }
-    function formatCompact(v){ if(v==null) return '—'; return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',notation:'compact',maximumFractionDigits:1}).format(v); }
-    function formatDate(v){ if(!v) return '—'; return new Date(v).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
-    function formatRange(l,h){ if(l==null && h==null) return 'TBD'; return '$' + (l ?? '—') + ' - $' + (h ?? '—'); }
-    function normalizeStatus(s){ return String(s || '').toLowerCase(); }
-    function relativeTime(v){ if(!v) return '—'; const sec = Math.floor((Date.now() - new Date(v).getTime())/1000); if(sec<60) return sec+'s ago'; const m=Math.floor(sec/60); if(m<60) return m+'m ago'; const h=Math.floor(m/60); if(h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
-    function showToast(msg){ els.toast.textContent = msg; els.toast.classList.remove('hidden'); clearTimeout(showToast.t); showToast.t = setTimeout(()=>els.toast.classList.add('hidden'), 2600); }
-    function metric(label, value, note){ return '<article class="metric-card glass"><span>'+label+'</span><strong>'+value+'</strong><small>'+note+'</small></article>'; }
-    function statusClass(status){ const s = normalizeStatus(status); if(['filed','amended','marketing'].includes(s)) return 'status-filed'; if(s==='pricing') return 'status-pricing'; if(s==='listed') return 'status-listed'; if(s==='withdrawn') return 'status-withdrawn'; return 'status-filed'; }
-    function watchlistIds(){ try { return JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]'); } catch { return []; } }
-    function setWatchlistIds(ids){ localStorage.setItem(WATCHLIST_KEY, JSON.stringify(ids)); }
-
-    function matchesFilters(company){
-      const search = state.filters.search.trim().toLowerCase();
-      const hay = [company.company_name, company.ticker, company.sector, company.description].filter(Boolean).join(' ').toLowerCase();
-      const bySearch = !search || hay.includes(search);
-      const byStatus = state.filters.status === 'all' || normalizeStatus(company.status) === state.filters.status;
-      const byExchange = state.filters.exchange === 'all' || String(company.exchange || '').toUpperCase() === state.filters.exchange;
-      return bySearch && byStatus && byExchange;
-    }
-
-    function sortCompanies(list){
-      const items = [...list];
-      switch (state.filters.sort) {
-        case 'date_asc': return items.sort((a,b)=> new Date(a.expected_listing_date || 0) - new Date(b.expected_listing_date || 0));
-        case 'deal_desc': return items.sort((a,b)=> (b.estimated_deal_size || 0) - (a.estimated_deal_size || 0));
-        case 'name_asc': return items.sort((a,b)=> String(a.company_name).localeCompare(String(b.company_name)));
-        default: return items.sort((a,b)=> new Date(b.updated_at || 0) - new Date(a.updated_at || 0));
-      }
-    }
-
-    function filteredCompanies(){ return sortCompanies(state.companies.filter(matchesFilters)); }
-
-    function renderMetrics(){
-      const companies = filteredCompanies();
-      const pricingSoon = companies.filter(c => normalizeStatus(c.status) === 'pricing').length;
-      const listed = companies.filter(c => normalizeStatus(c.status) === 'listed').length;
-      els.statsGrid.innerHTML = [
-        metric('Total tracked', companies.length, 'matching current filters'),
-        metric('Pricing in 7 days', pricingSoon, 'most actionable deals'),
-        metric('Live this month', listed, 'already listed names'),
-        metric('Change alerts', state.events.length, 'recent pipeline events')
-      ].join('');
-      els.trackedCount.textContent = String(companies.length);
-      els.radarCount.textContent = companies.length + ' issuers';
-    }
-
-    function renderCompanyCards(){
-      const companies = filteredCompanies();
-      if(!companies.length){ els.companyGrid.innerHTML = '<div class="empty-box">No IPOs match the current filters.</div>'; return; }
-      els.companyGrid.innerHTML = companies.map(c => `
-        <article class="company-card" data-company-id="${c.id}">
-          <header>
-            <div>
-              <h4>${c.company_name}</h4>
-              <div class="card-meta">${c.ticker || 'TBD'} • ${c.exchange || 'Unassigned'} • ${c.sector || 'Sector TBD'}</div>
-            </div>
-            <span class="status-badge ${statusClass(c.status)}">${c.status}</span>
-          </header>
-          <p class="card-copy">${c.description || 'No company description yet.'}</p>
-          <div class="card-foot">
-            <div class="meta-block"><span class="mini-label">Expected listing</span><strong>${formatDate(c.expected_listing_date)}</strong></div>
-            <div class="meta-block"><span class="mini-label">Estimated deal</span><strong>${formatCompact(c.estimated_deal_size)}</strong></div>
-            <div class="meta-block"><span class="mini-label">Price range</span><strong>${formatRange(c.current_price_range_low, c.current_price_range_high)}</strong></div>
-            <div class="meta-block"><span class="mini-label">Source label</span><strong>${c.source_label || c.last_source || 'Live data'}</strong></div>
-          </div>
-        </article>`).join('');
-      [...els.companyGrid.querySelectorAll('[data-company-id]')].forEach(card => card.addEventListener('click', ()=>{ state.selectedCompanyId = card.dataset.companyId; renderDetail(); }));
-    }
-
-    function renderCalendar(){
-      const companies = filteredCompanies().filter(c => c.expected_listing_date || c.expected_pricing_date);
-      if(!companies.length){ els.calendarList.innerHTML = '<div class="empty-box">No dated IPO events available.</div>'; return; }
-      els.calendarList.innerHTML = companies.map(c => `
-        <article class="calendar-card">
-          <header>
-            <div>
-              <h4>${c.company_name}</h4>
-              <div class="card-meta">${c.ticker || 'TBD'} • ${c.exchange || 'Unassigned'}</div>
-            </div>
-            <span class="status-badge ${statusClass(c.status)}">${c.status}</span>
-          </header>
-          <div class="calendar-meta">
-            <div class="meta-block"><span class="mini-label">Pricing date</span><strong>${formatDate(c.expected_pricing_date)}</strong></div>
-            <div class="meta-block"><span class="mini-label">Listing date</span><strong>${formatDate(c.expected_listing_date)}</strong></div>
-          </div>
-        </article>`).join('');
-    }
-
-    function renderPipeline(){
-      const companies = filteredCompanies();
-      if(!companies.length){ els.pipelineBody.innerHTML = '<tr><td colspan="7">No issuers match current filters.</td></tr>'; return; }
-      els.pipelineBody.innerHTML = companies.map(c => `
-        <tr>
-          <td><strong>${c.company_name}</strong><br><span class="detail-note">${c.ticker || 'TBD'}</span></td>
-          <td><span class="status-badge ${statusClass(c.status)}">${c.status}</span></td>
-          <td>${c.exchange || '—'}</td>
-          <td>${formatDate(c.expected_listing_date || c.expected_pricing_date)}</td>
-          <td>${formatRange(c.current_price_range_low, c.current_price_range_high)}</td>
-          <td>${formatCompact(c.estimated_deal_size)}</td>
-          <td><button class="btn btn-secondary small row-detail" data-company-id="${c.id}">View</button></td>
-        </tr>`).join('');
-      [...document.querySelectorAll('.row-detail')].forEach(btn => btn.addEventListener('click', ()=>{ state.selectedCompanyId = btn.dataset.companyId; renderDetail(); showToast('Issuer details opened'); }));
-    }
-
-    function renderEvents(){
-      if(!state.events.length){ els.eventFeed.innerHTML = '<div class="empty-box">No event feed yet. Add rows into Supabase table ipo_events.</div>'; return; }
-      els.eventFeed.innerHTML = state.events.map(e => `
-        <article class="event-item">
-          <header>
-            <span class="status-badge ${statusClass(e.event_type === 'amended' ? 'filed' : e.event_type)}">${e.event_type || 'update'}</span>
-            <span class="detail-note">${relativeTime(e.event_time)}</span>
-          </header>
-          <strong>${e.title}</strong>
-          <p>${e.detail || 'New pipeline event recorded.'}</p>
-          <div class="detail-note">${e.company_name || 'IPO issuer'} • ${e.source || 'Source unknown'}</div>
-        </article>`).join('');
-    }
-
-    function renderDetail(){
-      const company = state.companies.find(c => c.id === state.selectedCompanyId) || filteredCompanies()[0];
-      if(!company) return;
-      state.selectedCompanyId = company.id;
-      els.detailName.textContent = company.company_name;
-      const saved = watchlistIds().includes(company.id);
-      els.watchlistToggle.textContent = saved ? '★ Saved' : '☆ Save';
-      els.detailCard.classList.remove('empty-state');
-      els.detailCard.innerHTML = `
-        <div class="detail-topline">
-          <div>
-            <h4>${company.company_name}</h4>
-            <div class="detail-note">${company.ticker || 'TBD'} • ${company.exchange || 'Unassigned'} • ${company.sector || 'Sector TBD'}</div>
-          </div>
-          <span class="status-badge ${statusClass(company.status)}">${company.status}</span>
-        </div>
-        <p class="detail-copy">${company.description || 'Add a filing summary here.'}</p>
-        <div class="kv-grid">
-          <div class="meta-block"><span class="mini-label">Expected pricing</span><strong>${formatDate(company.expected_pricing_date)}</strong></div>
-          <div class="meta-block"><span class="mini-label">Expected listing</span><strong>${formatDate(company.expected_listing_date)}</strong></div>
-          <div class="meta-block"><span class="mini-label">Price range</span><strong>${formatRange(company.current_price_range_low, company.current_price_range_high)}</strong></div>
-          <div class="meta-block"><span class="mini-label">Shares offered</span><strong>${company.shares_offered ? new Intl.NumberFormat('en-US').format(company.shares_offered) : '—'}</strong></div>
-          <div class="meta-block"><span class="mini-label">Estimated deal</span><strong>${formatCurrency(company.estimated_deal_size)}</strong></div>
-          <div class="meta-block"><span class="mini-label">Trust label</span><strong>${company.trust_label || company.source_label || 'Live data'}</strong></div>
-        </div>
-        <div class="detail-note">Updated ${relativeTime(company.updated_at)}</div>`;
-    }
-
-    function renderWatchlist(){
-      const ids = watchlistIds();
-      const companies = state.companies.filter(c => ids.includes(c.id));
-      if(!companies.length){ els.watchlistGrid.innerHTML = '<div class="empty-box">Save issuers from the detail panel to build a personal watchlist.</div>'; return; }
-      els.watchlistGrid.innerHTML = companies.map(c => `
-        <article class="company-card" data-company-id="${c.id}">
-          <header>
-            <div>
-              <h4>${c.company_name}</h4>
-              <div class="card-meta">${c.ticker || 'TBD'} • ${c.exchange || 'Unassigned'}</div>
-            </div>
-            <span class="status-badge ${statusClass(c.status)}">${c.status}</span>
-          </header>
-          <p class="card-copy">${c.description || 'No summary yet.'}</p>
-        </article>`).join('');
-      [...els.watchlistGrid.querySelectorAll('[data-company-id]')].forEach(card => card.addEventListener('click', ()=>{ state.selectedCompanyId = card.dataset.companyId; renderDetail(); }));
-    }
-
-    function renderSources(){
-      const items = [
-        { name: 'SEC EDGAR', health: 'Primary', note: 'Use as the filing truth layer for S-1, F-1, amendments, and withdrawals.' },
-        { name: 'Nasdaq IPO page', health: 'Secondary', note: 'Good public market-facing layer. Mark dates as estimated unless exchange-confirmed.' },
-        { name: 'NYSE IPO Center', health: 'Secondary', note: 'Useful to track filed, amended, and withdrawn deal changes.' },
-        { name: 'Supabase Realtime', health: 'Core', note: 'Pushes live table changes into the dashboard without a rebuild.' }
-      ];
-      els.sourceGrid.innerHTML = items.map(i => `
-        <article class="source-card">
-          <span>${i.health}</span>
-          <h4>${i.name}</h4>
-          <p class="card-copy">${i.note}</p>
-        </article>`).join('');
-    }
-
-    function renderAll(){
-      renderMetrics();
-      renderCompanyCards();
-      renderCalendar();
-      renderPipeline();
-      renderEvents();
-      renderWatchlist();
-      renderSources();
-      renderDetail();
-      els.dataMode.textContent = state.usingFallback ? 'Demo fallback' : 'Supabase live';
-      els.lastSync.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-    }
-
-    function setView(view){
-      state.activeView = view;
-      els.pageTitle.textContent = ({ dashboard: 'Executive Dashboard', calendar: 'IPO Calendar', pipeline: 'Pipeline Control', watchlist: 'Personal Watchlist', sources: 'Source Health' })[view] || 'Executive Dashboard';
-      Object.keys(els.views).forEach(key => els.views[key].classList.toggle('hidden', key !== view));
-      document.querySelectorAll('.nav-link').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
-    }
-
-    function applyFilters(){
-      state.filters.search = els.searchInput.value;
-      state.filters.status = els.statusFilter.value;
-      state.filters.exchange = els.exchangeFilter.value;
-      state.filters.sort = els.sortFilter.value;
-      renderAll();
-    }
-
-    function toggleWatchlist(id){
-      const ids = new Set(watchlistIds());
-      if(ids.has(id)) { ids.delete(id); showToast('Removed from watchlist'); }
-      else { ids.add(id); showToast('Saved to watchlist'); }
-      setWatchlistIds([...ids]);
-      renderWatchlist();
-      renderDetail();
-    }
-
-    async function loadSession(){
-      try {
-        const { data } = await supabase.auth.getSession();
-        const email = data.session && data.session.user && data.session.user.email;
-        els.authBtn.textContent = email ? ('Signed in: ' + email) : 'Sign in for Watchlist';
-      } catch {
-        els.authBtn.textContent = 'Sign in for Watchlist';
-      }
-    }
-
-    async function signInFlow(){
-      const email = window.prompt('Enter your email for Supabase magic-link sign in:');
-      if(!email) return;
-      const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: window.location.href } });
-      if(error){ showToast(error.message); return; }
-      showToast('Magic link sent. Finish sign-in from your inbox.');
-    }
-
-    async function fetchLiveData(silent){
-      try {
-        const results = await Promise.all([
-          supabase.from(COMPANY_TABLE).select('*').order('updated_at', { ascending: false }).limit(50),
-          supabase.from(EVENT_TABLE).select('*').order('event_time', { ascending: false }).limit(20)
-        ]);
-        const companiesRes = results[0];
-        const eventsRes = results[1];
-        if (companiesRes.error || !companiesRes.data || !companiesRes.data.length) throw companiesRes.error || new Error('No live company rows yet');
-        if (eventsRes.error) throw eventsRes.error;
-        state.companies = companiesRes.data;
-        state.events = eventsRes.data || [];
-        state.usingFallback = false;
-        if(!silent) showToast('Live IPO data loaded');
-      } catch (e) {
-        state.companies = mockCompanies;
-        state.events = mockEvents;
-        state.usingFallback = true;
-        if(!silent) showToast('Using demo fallback until Supabase tables are populated');
-      }
-      renderAll();
-    }
-
-    function attachRealtime(){
-      supabase.channel('ipo-live-dashboard')
-        .on('postgres_changes', { event: '*', schema: 'public', table: COMPANY_TABLE }, () => fetchLiveData(true))
-        .on('postgres_changes', { event: '*', schema: 'public', table: EVENT_TABLE }, () => fetchLiveData(true))
-        .subscribe((status) => {
-          const ok = status === 'SUBSCRIBED';
-          els.liveDot.classList.toggle('connected', ok);
-          els.connectionState.textContent = ok ? 'Connected' : status;
-          els.realtimeStatus.textContent = ok ? 'Active' : 'Inactive';
-        });
-    }
-
-    function bindEvents(){
-      document.querySelectorAll('.nav-link').forEach(btn => btn.addEventListener('click', () => setView(btn.dataset.view)));
-      [els.searchInput, els.statusFilter, els.exchangeFilter, els.sortFilter].forEach(el => el.addEventListener('input', applyFilters));
-      $('refresh-btn').addEventListener('click', () => fetchLiveData(false));
-      $('hero-refresh').addEventListener('click', () => fetchLiveData(false));
-      $('hero-demo').addEventListener('click', () => { state.companies = mockCompanies; state.events = mockEvents; state.usingFallback = true; renderAll(); showToast('Demo data loaded'); });
-      els.authBtn.addEventListener('click', signInFlow);
-      els.watchlistToggle.addEventListener('click', () => state.selectedCompanyId && toggleWatchlist(state.selectedCompanyId));
-    }
-
-    async function init(){
-      bindEvents();
-      await loadSession();
-      await fetchLiveData(true);
-      attachRealtime();
-      supabase.auth.onAuthStateChange(() => loadSession());
-    }
-    init();
-  </script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/v4513226cdae34746b4dedf0b4dfa099e1781791509496" integrity="sha512-ZE9pZaUXND66v380QUtch/5sE9tPFh2zg45pR2PB0CVkCtOREv2AJKkSidISWkysEuQ0EH8faUU5du78bx87UQ==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </body>
 </html>
